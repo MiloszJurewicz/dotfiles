@@ -49,12 +49,12 @@ setopt hist_find_no_dups
 
 # Completion styling
 zstyle ':completion:*' menu no
-
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 
 PATH="$HOME/.local/bin:$PATH"
 PATH="$HOME/bin:$PATH"
 
-eval "$(zoxide init zsh)"
+eval "$(zoxide init --cmd cd zsh)"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 
