@@ -7,10 +7,13 @@ if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
         print -P "%F{160} The clone has failed.%f%b"
 fi
 
+
 source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
-### End of Zinit's installer chunkexport 
+
+# Create cache and completions dir and add to $fpath
+PATH="/usr/local/bin/:$PATH"
 
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light zsh-users/zsh-completions
@@ -21,10 +24,12 @@ zinit light Aloxaf/fzf-tab
 zinit snippet OMZP::git
 zinit snippet OMZP::aws
 zinit snippet OMZP::kubectl
-zinit snippet OMZP::kubectx
+zinit snippet OMZP::minikube
+zinit snippet OMZP::helm
+zinit snippet OMZP::argocd
 
 # Load completions
-autoload -U compinit && compinit
+autoload -Uz compinit && compinit
 
 zinit cdreplay -q
 
@@ -60,6 +65,6 @@ eval "$(zoxide init --cmd cd zsh)"
 
 eval "$(starship init zsh)"
 
-
-
-
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
