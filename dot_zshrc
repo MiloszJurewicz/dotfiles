@@ -27,16 +27,21 @@ zinit snippet OMZP::kubectl
 zinit snippet OMZP::minikube
 zinit snippet OMZP::helm
 zinit snippet OMZP::argocd
+#zinit snippet OMZP::docker
 
 # Load completions
 autoload -Uz compinit && compinit
 
 zinit cdreplay -q
 
+zinit creinstall /home/quack/.cache/zinit/completions  > /dev/null 2>&1
+
 # Keybindigs
 bindkey -e
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
+
+
 
 # History
 HISTSIZE=5000
@@ -68,3 +73,7 @@ eval "$(starship init zsh)"
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
