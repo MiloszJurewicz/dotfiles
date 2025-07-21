@@ -1,4 +1,4 @@
 [".config/nvim"]
     type = "git-repo"
-    url = "git@github.com:MiloszJurewicz/kickstart.nvim.gi"
+    url = "git@github.com:MiloszJurewicz/kickstart.nvim.git"
     refreshPeriod = "1h"
