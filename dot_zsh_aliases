@@ -1,0 +1,11 @@
+gcp-pick() {
+  local PROJECT_ID
+  PROJECT_ID=$(gcloud projects list --format="value(projectId)" | fzf --prompt="Select GCP Project: ")
+  if [[ -z "$PROJECT_ID" ]]; then
+    echo "No project selected."
+    return 1
+  fi
+  gcloud config set project "$PROJECT_ID"
+  echo "Default project set to: $PROJECT_ID"
+}
+
