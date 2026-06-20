@@ -1,0 +1,42 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = true
+
+format = '$username$hostname$directory$git_branch$git_status$helm$gcloud$kubernetes$character'
+
+[username]
+style_user = 'bold green'
+format = '[\[$user\]]($style)'
+
+[hostname]
+style = 'bold cyan'
+format = '[\[$hostname\]]($style)'
+
+[directory]
+style = 'bold blue'
+truncation_length = 3
+truncate_to_repo = false
+format = '[\[$path\]]($style)'
+
+[git_branch]
+style = 'bold purple'
+format = '[\[$symbol$branch\]]($style)'
+
+[git_status]
+style = 'bold purple'
+format = '[\[$all_status$ahead_behind\]]($style)'
+
+[gcloud]
+disabled = false
+style = 'bold yellow'
+format = '[\[$symbol$account(@$domain)(\($project\))\]]($style)'
+
+[helm]
+disabled = false
+style = 'bold white'
+format = '[\[$symbol$version\]]($style)'
+
+[kubernetes]
+disabled = false
+style = 'bold red'
+format = '[\[$symbol$context( \($namespace\))\]]($style)'
