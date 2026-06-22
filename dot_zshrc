@@ -42,7 +42,7 @@ autoload -Uz compinit && compinit
 
 zinit cdreplay -q
 
-# zinit creinstall /home/quack/.cache/zinit/completions  > /dev/null 2>&1
+zinit creinstall /home/quack/.cache/zinit/completions  > /dev/null 2>&1
 
 # Load custom completions
 for f in ~/.zsh_completions/*.zsh; do
@@ -84,7 +84,7 @@ PATH="$HOME/bin:$PATH"
 eval "$(zoxide init --cmd cd zsh)"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-
+ export KUBECONFIG=~/.kube/config
 eval "$(starship init zsh)"
 
 # nvm 
@@ -104,6 +104,30 @@ if [ -f '/home/quack/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/home/q
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/home/quack/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/quack/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+# DeepSeek / Anthropic API Config
+export ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
+export ANTHROPIC_MODEL=deepseek-v4-pro[1m]
+export ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro[1m]
+export ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro[1m]
+export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash
+export CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-flash
+export CLAUDE_CODE_EFFORT_LEVEL=max
+
+# Propagate BW/Anthropic session vars across all panes
+_bw_source_session() {
+  [[ -f ~/.cache/anthropic_session ]] && source ~/.cache/anthropic_session
+
+  # Warn once per shell if BW session has expired
+  if [[ -z $_BW_SESSION_CHECKED && -n $BW_SESSION ]]; then
+    _BW_SESSION_CHECKED=1
+    if [ "$(bw status | jq -r '.status')" != "unlocked" ]; then
+      echo "⚠️  Bitwarden session expired. Run bw_load_anthropic_key to re-authenticate." >&2
+    fi
+  fi
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _bw_source_session
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"

@@ -9,3 +9,27 @@ gcp-pick() {
   echo "Default project set to: $PROJECT_ID"
 }
 
+bw_ensure_session() {
+  if [ "$(bw status | jq -r '.status')" != "unlocked" ]; then
+    export BW_SESSION="$(bw unlock --raw)"
+    echo "export BW_SESSION='${BW_SESSION}'" >| ~/.cache/anthropic_session
+    chmod 600 ~/.cache/anthropic_session
+  fi
+}
+
+bw_load_anthropic_key() {
+  bw_ensure_session
+
+  export ANTHROPIC_AUTH_TOKEN="$(
+    bw get item f05fdf65-e459-4aaa-8c36-b471016fe516 \
+    | jq -r '.fields[]? | select(.name=="Api Key") | .value'
+  )"
+
+  echo "export ANTHROPIC_AUTH_TOKEN='${ANTHROPIC_AUTH_TOKEN}'" >> ~/.cache/anthropic_session
+}
+
+bw_unload_anthropic_key() {
+  unset BW_SESSION
+  unset ANTHROPIC_AUTH_TOKEN
+  rm -f ~/.cache/anthropic_session
+}
