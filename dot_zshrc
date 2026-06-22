@@ -118,12 +118,11 @@ export CLAUDE_CODE_EFFORT_LEVEL=max
 _bw_source_session() {
   [[ -f ~/.cache/anthropic_session ]] && source ~/.cache/anthropic_session
 
-  # Warn once per shell if BW session has expired
+  # Warn once per shell if BW session has expired (async to avoid prompt delay)
   if [[ -z $_BW_SESSION_CHECKED && -n $BW_SESSION ]]; then
     _BW_SESSION_CHECKED=1
-    if [ "$(bw status | jq -r '.status')" != "unlocked" ]; then
-      echo "⚠️  Bitwarden session expired. Run bw_load_anthropic_key to re-authenticate." >&2
-    fi
+    (bw status | jq -r '.status' | grep -qv "unlocked" && \
+      echo "⚠️  Bitwarden session expired. Run bw_load_anthropic_key to re-authenticate." >&2) &!
   fi
 }
 autoload -Uz add-zsh-hook
