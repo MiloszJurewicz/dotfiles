@@ -33,3 +33,25 @@ bw_unload_anthropic_key() {
   unset ANTHROPIC_AUTH_TOKEN
   rm -f ~/.cache/anthropic_session
 }
+
+# --- Zellij session pickers ---
+
+_zs() { zellij list-sessions -s -n; }  # list session names
+
+za() {
+  local s
+  s=$(_zs | fzf --prompt="Attach: " --height=~10)
+  [[ -n "$s" ]] && zellij attach "$s"
+}
+
+zk() {
+  local s
+  s=$(_zs | fzf --prompt="Kill: " --height=~10)
+  [[ -n "$s" ]] && zellij kill-session "$s"
+}
+
+zd() {
+  local s
+  s=$(_zs | fzf --prompt="Delete: " --height=~10)
+  [[ -n "$s" ]] && zellij delete-session "$s"
+}

@@ -10,7 +10,6 @@ if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
         print -P "%F{160} The clone has failed.%f%b"
 fi
 
-
 source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
@@ -21,6 +20,7 @@ if [ -f ~/.zsh_aliases ]; then
 fi
 
 # Create cache and completions dir and add to $fpath
+fpath=(~/.config/zsh/completions $fpath)
 PATH="/usr/local/bin/:$PATH"
 
 zinit light zsh-users/zsh-syntax-highlighting
@@ -39,15 +39,22 @@ zinit snippet OMZP::docker
 
 
 autoload -Uz compinit
-if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
-  compinit
-else
-  compinit -C
-fi
+compinit -C   # required by cdreplay (provides compdef); creinstall runs full compinit after
 
 zinit cdreplay -q
 
-zinit creinstall /home/quack/.cache/zinit/completions  > /dev/null 2>&1
+# kubectl completion: OMZ plugin skips source when file exists, relying on
+# compinit which doesn't pick it up. creinstall symlinks + runs fresh compinit.
+zinit creinstall /home/quack/.cache/zinit/completions > /dev/null 2>&1
+
+# Regenerate bw completion if binary is newer than cached version
+if [[ "$(which bw)" -nt ~/.cache/zinit/completions/_bw ]]; then
+  bw completion --shell zsh > ~/.cache/zinit/completions/_bw 2>/dev/null
+fi
+
+for f in ~/.cache/zinit/completions/_*(N); do
+  [[ -L ~/.local/share/zinit/completions/${f:t} ]] || { zinit creinstall /home/quack/.cache/zinit/completions; break; }
+done
 
 # Load custom completions
 for f in ~/.zsh_completions/*.zsh; do
@@ -95,7 +102,7 @@ eval "$(starship init zsh)"
 # nvm (lazy loaded)
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-nvm() { unfunction nvm; source "$NVM_DIR/nvm.sh"; nvm "$@"; }
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 # Pyenv
 export PYENV_ROOT="$HOME/.pyenv"
@@ -110,14 +117,7 @@ if [ -f '/home/quack/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/home/q
 # The next line enables shell command completion for gcloud.
 if [ -f '/home/quack/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/quack/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
-# DeepSeek / Anthropic API Config
-export ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
-export ANTHROPIC_MODEL=deepseek-v4-pro[1m]
-export ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro[1m]
-export ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro[1m]
-export ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash
-export CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-flash
-export CLAUDE_CODE_EFFORT_LEVEL=max
+# DeepSeek / Anthropic API Config → moved to ~/.zshenv so non-interactive shells see it
 
 # Propagate BW/Anthropic session vars across all panes
 _bw_source_session() {
