@@ -55,3 +55,76 @@ zd() {
   s=$(_zs | fzf --prompt="Delete: " --height=~10)
   [[ -n "$s" ]] && zellij delete-session "$s"
 }
+
+# zellij worktree — fzf-pick a git worktree and start a session named "repo/branch"
+# optionally pass a repo path: zwt ~/some-repo; defaults to current dir
+zwt() {
+  local repo="${1:-.}"
+
+  if ! git -C "$repo" rev-parse --git-dir >/dev/null 2>&1; then
+    echo "Not in a git repository."
+    return 1
+  fi
+
+  local repo_name
+  repo_name=$(basename "$(git -C "$repo" rev-parse --show-toplevel)")
+
+  local selection
+  selection=$(git -C "$repo" worktree list --porcelain | awk '
+    BEGIN { path=""; label="" }
+    /^worktree / { path=$2 }
+    /^branch/    { sub(/^branch refs\/heads\//, ""); label=$2 }
+    /^HEAD/      { if (!label) label="(detached)" }
+    /^$/         { if (path) print path "\t" label; path=""; label="" }
+    END          { if (path) print path "\t" label }
+  ' | fzf --prompt="Worktree: " --height=~10 --delimiter="\t" --with-nth=2)
+
+  if [[ -z "$selection" ]]; then
+    return 0
+  fi
+
+  local wt_path wt_label
+  wt_path=$(echo "$selection" | cut -f1)
+  wt_label=$(echo "$selection" | cut -f2 | tr '/' '-')
+
+  local session_name="${repo_name}/${wt_label}"
+
+  if [[ -n "$ZELLIJ_SESSION_NAME" ]]; then
+    echo "Already inside zellij. Detach first (Ctrl+o d) or use zss to switch."
+    return 1
+  fi
+
+  cd "$wt_path" && zellij --session "$session_name"
+}
+
+# zellij new session — start or attach to a session named after the current directory
+zns() {
+  local name
+  name=$(basename "$PWD")
+
+  if [[ "$ZELLIJ_SESSION_NAME" == "$name" ]]; then
+    echo "Already in session \"$name\"."
+    return 0
+  fi
+
+  # inside a different zellij session — attaching would nest, which is dangerous
+  if [[ -n "$ZELLIJ_SESSION_NAME" ]]; then
+    echo "\"$name\" is a different session. Detach first (Ctrl+o d) or use Ctrl+o w to switch."
+    return 1
+  fi
+
+  if zellij list-sessions -s -n 2>/dev/null | grep -qxF "$name"; then
+    zellij attach "$name"
+  else
+    zellij --session "$name"
+  fi
+}
+
+# zellij switch session — open the session switcher (only works inside a zellij session)
+zss() {
+  if [[ -z "$ZELLIJ_SESSION_NAME" ]]; then
+    echo "Not inside a zellij session."
+    return 1
+  fi
+  zellij action launch-or-focus-plugin --floating session-manager
+}
